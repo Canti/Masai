@@ -1,7 +1,16 @@
+//---------------------------------------- ABOUT ----------------------------------------//
 Masai is a 2D platform game based on Masai folklore. It uses the LÖVE 2D engine.
 To play it, you'll need to install LÖVE from http://love2d.org/
 
 It's still a WIP and many things will change in the future, whenever that might be. ^^;
+
+Cantide aka Kanchi aka Karl Wortmann
+
+//---------------------------------------------------------------------------------------//
+//---------------------------------------- CONTROLS -------------------------------------//
+
+These are not configurable at the moment, but I will create a config file and game menu
+in the distant future.
 
 Keys:
 
@@ -12,5 +21,24 @@ left  mouse click to jab with the spear
 right mouse click to throw the spear
 
 p to pause
-f12 to toggle fullscreen ( only 1440x900 at the moment, config file and game menu to be created later )
+f12 to toggle fullscreen
 escape to quit
+
+//---------------------------------------------------------------------------------------//
+//---------------------------------------- CREDITS --------------------------------------//
+
+
+drum_1.ogg  is drums.flac    on freesound.org by qubodup
+woosh_1.ogg is swosh-39.flac on freesound.org by qubodup
+woosh_2.ogg is swosh-27.flac on freesound.org by qubodup
+
+greenochrome.xm was made by neuro_sys @ freenode
+
+A million thanks to everyone at #love on freenode, especially
+Ensayia
+TechnoCat
+bartbes
+tentus
+
+
+The rest of the awesomeness was made with my mediocre programmer/artistic skills >_>
