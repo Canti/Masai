@@ -1,3 +1,10 @@
+-- Masai is a 2D platform game based on Masai folklore.
+-- It uses the LÖVE 2D game engine. http://love2d.org
+
+-- Cantide aka Kanchi aka Karl Wortmann
+
+require 'secs'    -- an OO implementation by bartbes. http://love2d.org/wiki/SECS
+
 local paused = false;
 local fullscreen = false;
 
@@ -25,13 +32,15 @@ ypos_torso = 0;
 function love.load()
   music = love.audio.newSource("music/greenochrome.xm");
   music:setLooping(true);
-  music:setVolume(0.3);
+  music:setVolume(0.4);
 
-  bounce_sound_1 = love.audio.newSource("sounds/drum_1.ogg");
+  love.audio.play(music)
+
+  bounce_sound_1 = love.audio.newSource("sounds/drum_1.ogg", "static");
   bounce_sound_1:setVolume(1.0);
-  throw_sound_1 = love.audio.newSource("sounds/woosh_1.ogg");
+  throw_sound_1 = love.audio.newSource("sounds/woosh_1.ogg", "static");
   throw_sound_1:setVolume(1.0);
-  throw_sound_2 = love.audio.newSource("sounds/woosh_2.ogg");
+  throw_sound_2 = love.audio.newSource("sounds/woosh_2.ogg", "static");
   throw_sound_2:setVolume(1.0);
 
   love.mouse.setVisible(false)
@@ -44,8 +53,6 @@ function love.load()
   masai_foot  = love.graphics.newImage("textures/masai_foot.png");
 
   crate       = love.graphics.newImage("textures/crate.png");
-
-  love.audio.play(music)
 
   world = love.physics.newWorld(-650, -650, 650, 650) --create a world for the bodies to exist in with width and height of 650
   world:setGravity(0, 500) --the x component of the gravity will be 0, and the y component of the gravity will be 500
@@ -65,12 +72,12 @@ function love.load()
 
   objects.right_wall = {}
   objects.right_wall.body  = love.physics.newBody(world, 645, 300, 0, 0) --remember, the body anchors from the center of the shape
-  objects.right_wall.shape = love.physics.newRectangleShape(objects.right_wall.body, 0, 0, 10, 600, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
+  objects.right_wall.shape = love.physics.newRectangleShape(objects.right_wall.body, 0, 0, 10, 600, 0) --anchor the shape to the body, and make it a width of 10 and a height of 600
   objects.right_wall.shape:setCategory(2);
 
   objects.left_wall = {}
   objects.left_wall.body  = love.physics.newBody(world, 5, 300, 0, 0) --remember, the body anchors from the center of the shape
-  objects.left_wall.shape = love.physics.newRectangleShape(objects.left_wall.body, 0, 0, 10, 600, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
+  objects.left_wall.shape = love.physics.newRectangleShape(objects.left_wall.body, 0, 0, 10, 600, 0) --anchor the shape to the body, and make it a width of 10 and a height of 600
   objects.left_wall.shape:setCategory(2);
 
   objects.plat1 = {}
@@ -89,14 +96,14 @@ function love.load()
 
   objects.plat3 = {}
   objects.plat3.body  = love.physics.newBody(world, 55, 425, 0, 0) --remember, the body anchors from the center of the shape
-  objects.plat3.shape = love.physics.newRectangleShape(objects.plat3.body, 0, 0, 90, 30, 0) --anchor the shape to the body, and make it a width of 900 and a height of 30
+  objects.plat3.shape = love.physics.newRectangleShape(objects.plat3.body, 0, 0, 90, 30, 0) --anchor the shape to the body, and make it a width of 90 and a height of 30
   objects.plat3.shape:setRestitution(0);
   objects.plat3.shape:setData("static");
   objects.plat3.shape:setCategory(2);
 
   objects.pad = {}
-  objects.pad.body = love.physics.newBody(world, 550, 600, 0, 0) --remember, the body anchors from the center of the shape
-  objects.pad.shape = love.physics.newRectangleShape(objects.pad.body, 0, 0, 50, 10, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
+  objects.pad.body = love.physics.newBody(world, 550, 595, 0, 0) --remember, the body anchors from the center of the shape
+  objects.pad.shape = love.physics.newRectangleShape(objects.pad.body, 0, 0, 50, 10, 0) --anchor the shape to the body, and make it a width of 50 and a height of 10
   objects.pad.shape:setRestitution(2);
   objects.pad.shape:setData("pad");
   objects.pad.shape:setCategory(2);
@@ -128,7 +135,7 @@ function love.load()
   --let's create a box
   objects.box = {}
   objects.box.body  = love.physics.newBody(world, 300, 200, 1, 0)
-  objects.box.shape = love.physics.newRectangleShape(objects.box.body, 0, 0, 30, 30, 0)
+  objects.box.shape = love.physics.newRectangleShape(objects.box.body, 0, 0, 32, 32, 0)
   objects.box.body:setMassFromShapes();
   objects.box.shape:setRestitution(0);
   objects.box.shape:setData("static");
@@ -142,7 +149,7 @@ function love.load()
 end
 
 function add(a, b, coll)
-    if (a == "pad") then
+    if (a == "pad") and bounce_sound_1:isStopped() then
        love.audio.play(bounce_sound_1)
     end
 end
@@ -318,7 +325,7 @@ function love.draw()
 
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the images
 
-    love.graphics.draw(crate, objects.box.body:getX(), objects.box.body:getY(), objects.box.body:getAngle(), 1, 1, 15, 15);
+    love.graphics.draw(crate, objects.box.body:getX(), objects.box.body:getY(), objects.box.body:getAngle(), 1, 1, 16, 16);
 
     love.graphics.draw(masai_torso, objects.player.body:getX(), (objects.player.body:getY() - 20), 0, facing, 1,  10, ypos_torso);
     love.graphics.draw(masai_head,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,   0, ypos_torso);
@@ -339,8 +346,6 @@ function love.draw()
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the text
 
   love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
-
-  love.graphics.print("Mass: " .. objects.player.body:getMass(), 580, 35)
 
   if (paused) then
      love.graphics.setFont(24);
