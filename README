@@ -6,7 +6,6 @@ It's still a WIP and many things will change in the future, whenever that might 
 
 Cantide aka Kanchi aka Karl Wortmann
 
-//---------------------------------------------------------------------------------------//
 //---------------------------------------- CONTROLS -------------------------------------//
 
 These are not configurable at the moment, but I will create a config file and game menu
@@ -24,7 +23,6 @@ p to pause
 f12 to toggle fullscreen
 escape to quit
 
-//---------------------------------------------------------------------------------------//
 //---------------------------------------- CREDITS --------------------------------------//
 
 
