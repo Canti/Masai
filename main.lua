@@ -4,7 +4,7 @@ local fullscreen = false;
 local canJump = false;
 local canRun  = false;
 
-local spear_speed = 400;
+local spear_speed = 100;
 local x_spear_tip = 0;
 local y_spear_tip = 0;
 
@@ -75,21 +75,21 @@ function love.load()
 
   objects.plat1 = {}
   objects.plat1.body  = love.physics.newBody(world, 250, 500, 0, 0) --remember, the body anchors from the center of the shape
-  objects.plat1.shape = love.physics.newRectangleShape(objects.plat1.body, 0, 0, 180, 30, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
+  objects.plat1.shape = love.physics.newRectangleShape(objects.plat1.body, 0, 0, 180, 30, 0) --anchor the shape to the body, and make it a width of 180 and a height of 30
   objects.plat1.shape:setRestitution(0);
   objects.plat1.shape:setData("static");
   objects.plat1.shape:setCategory(2);
 
   objects.plat2 = {}
   objects.plat2.body  = love.physics.newBody(world, 365, 350, 0, 0) --remember, the body anchors from the center of the shape
-  objects.plat2.shape = love.physics.newRectangleShape(objects.plat2.body, 0, 0, 300, 30, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
+  objects.plat2.shape = love.physics.newRectangleShape(objects.plat2.body, 0, 0, 300, 30, 0) --anchor the shape to the body, and make it a width of 300 and a height of 30
   objects.plat2.shape:setRestitution(0);
   objects.plat2.shape:setData("static");
   objects.plat2.shape:setCategory(2);
 
   objects.plat3 = {}
   objects.plat3.body  = love.physics.newBody(world, 55, 425, 0, 0) --remember, the body anchors from the center of the shape
-  objects.plat3.shape = love.physics.newRectangleShape(objects.plat3.body, 0, 0, 90, 30, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
+  objects.plat3.shape = love.physics.newRectangleShape(objects.plat3.body, 0, 0, 90, 30, 0) --anchor the shape to the body, and make it a width of 900 and a height of 30
   objects.plat3.shape:setRestitution(0);
   objects.plat3.shape:setData("static");
   objects.plat3.shape:setCategory(2);
@@ -103,10 +103,12 @@ function love.load()
  
   --let's create the player
   objects.player = {}
-  objects.player.body = love.physics.newBody(world, 100, 500, 15, 0) --place the body in the center of the world, with a mass of 15
+  objects.player.body = love.physics.newBody(world, 100, 500, 1, 0) --place the body in the center of the world, with a mass of 1
   objects.player.shape = love.physics.newCircleShape(objects.player.body, 0, 0, 20) --the player's shape has no offset from it's body and has a radius of 20
---  objects.player.body:setMassFromShapes();
+  objects.player.body:setAngularDamping(20.0);
+  objects.player.body:setMassFromShapes();
   objects.player.shape:setRestitution(0);
+  objects.player.shape:setFriction(1.0);
   objects.player.shape:setData("player");
   objects.player.shape:setCategory(1);
   objects.player.shape:setMask(1);
@@ -129,6 +131,7 @@ function love.load()
   objects.box.shape = love.physics.newRectangleShape(objects.box.body, 0, 0, 30, 30, 0)
   objects.box.body:setMassFromShapes();
   objects.box.shape:setRestitution(0);
+  objects.box.shape:setData("static");
   objects.box.shape:setCategory(2);
 
 
@@ -242,9 +245,9 @@ function love.update(dt)
   --here we are going to create some keyboard events
   if love.keyboard.isDown("d") then --press the d key to push the player to the right
        if xvel < 220 and canRun then
-          objects.player.body:applyForce(400, 0)
+          objects.player.body:applyForce(8, 0)
        elseif xvel < 220 then
-          objects.player.body:applyForce(150, 0)
+          objects.player.body:applyForce(3, 0)
        end
     angle_feet = angle_feet%math.pi + dt;
     -- <TechnoCat> A*sin(B*x)+C A=amplitude, 1/B = frequency, C=y-offset
@@ -254,9 +257,9 @@ function love.update(dt)
     running = 1;
   elseif love.keyboard.isDown("a") then --press the a key to push the player to the left
        if xvel > -220 and canRun then
-          objects.player.body:applyForce(-400, 0)
+          objects.player.body:applyForce(-8, 0)
        elseif xvel > -220 then
-          objects.player.body:applyForce(-150, 0)
+          objects.player.body:applyForce(-3, 0)
        end
     angle_feet = angle_feet%math.pi + dt;
     xpos_foot1, ypos_foot1 = math.cos(12*angle_feet)*10, math.sin(12*angle_feet)*4;
@@ -272,7 +275,7 @@ end
 
 function love.keypressed(key, unicode)
   if key == " " and canJump and not paused then
-       objects.player.body:applyImpulse(0, -100, 10, 10)
+       objects.player.body:applyImpulse(0, -2.3, 10, 10)
   elseif key == "p" then
        paused = not paused;
   end    
@@ -315,7 +318,7 @@ function love.draw()
 
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the images
 
-    love.graphics.draw(crate, objects.box.body:getX(), (objects.box.body:getY()), objects.box.body:getAngle(), 1, 1, 15, 15);
+    love.graphics.draw(crate, objects.box.body:getX(), objects.box.body:getY(), objects.box.body:getAngle(), 1, 1, 15, 15);
 
     love.graphics.draw(masai_torso, objects.player.body:getX(), (objects.player.body:getY() - 20), 0, facing, 1,  10, ypos_torso);
     love.graphics.draw(masai_head,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,   0, ypos_torso);
@@ -336,6 +339,8 @@ function love.draw()
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the text
 
   love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
+
+  love.graphics.print("Mass: " .. objects.player.body:getMass(), 580, 35)
 
   if (paused) then
      love.graphics.setFont(24);
