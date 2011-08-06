@@ -38,6 +38,7 @@ function love.load()
 
   bounce_sound_1 = love.audio.newSource("sounds/drum_1.ogg", "static");
   bounce_sound_1:setVolume(1.0);
+  bounce_sound_1:setPitch(0.75);
   throw_sound_1 = love.audio.newSource("sounds/woosh_1.ogg", "static");
   throw_sound_1:setVolume(1.0);
   throw_sound_2 = love.audio.newSource("sounds/woosh_2.ogg", "static");
