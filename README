@@ -1,1 +1,16 @@
-test
+Masai is a 2D platform game based on Masai folklore. It uses the LÖVE 2D engine.
+To play it, you'll need to install LÖVE from http://love2d.org/
+
+It's still a WIP and many things will change in the future, whenever that might be. ^^;
+
+Keys:
+
+a to move left
+d to move right
+space to jump
+left  mouse click to jab with the spear
+right mouse click to throw the spear
+
+p to pause
+f12 to toggle fullscreen ( only 1440x900 at the moment, config file and game menu to be created later )
+escape to quit
