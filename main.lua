@@ -8,46 +8,30 @@
 -- main.lua
 
 require 'secs'      -- a LUA OO implementation by bartbes. http://love2d.org/wiki/SECS
+
+require 'gamestate' -- variables for things like paused / menu etc.
+require 'mouse'     -- mouse distance / angle functions
 require 'sounds'    -- load all our audio here
 require 'textures'  -- load all our textures here
-require 'gamestate' -- variables for things like paused / menu etc.
 
-
-local canJump = false;
-local canRun  = false;
-
-local spear_speed = 100;
-local x_spear_tip = 0;
-local y_spear_tip = 0;
-
-local jab     = false;
-local jabtime = 0;
-
-local throw     = false;
-local throwtime = 0;
-
-local facing  = 1;
-local running = 1;
-angle_feet  = 0;
-angle_torso = 0;
-xpos_foot1 = 0; xpos_foot2 = 0;
-ypos_foot1 = 0; ypos_foot2 = 0;
-ypos_torso = 0;
+require 'player'    -- the player class and associated functions
+require 'spear'     -- the spear class and associated functions
 
 function love.load()
 
   gamestate:init();
+  mouse:init();
   sounds:load();
   textures:load();
-  love.audio.play(sounds.music);
-
-  love.mouse.setVisible(false)
 
   world = love.physics.newWorld(-650, -650, 650, 650) --create a world for the bodies to exist in with width and height of 650
   world:setGravity(0, 500) --the x component of the gravity will be 0, and the y component of the gravity will be 500
   world:setMeter(64) --the height of a meter in this world will be 64px
   world:setCallbacks(add, persist, rem, result)
- 
+
+  player:init(100, 500); ---------------------------------------------
+  spear:init();
+
   objects = {} -- table to hold all our physical objects
  
   --let's create the ground
@@ -56,38 +40,36 @@ function love.load()
   objects.ground.body  = love.physics.newBody(world, 650/2, 625, 0, 0) --remember, the body anchors from the center of the shape
   objects.ground.shape = love.physics.newRectangleShape(objects.ground.body, 0, 0, 650, 50, 0) --anchor the shape to the body, and make it a width of 650 and a height of 50
   objects.ground.shape:setRestitution(0);
-  objects.ground.shape:setData("static");
   objects.ground.shape:setCategory(2);
 
   objects.right_wall = {}
   objects.right_wall.body  = love.physics.newBody(world, 645, 300, 0, 0) --remember, the body anchors from the center of the shape
   objects.right_wall.shape = love.physics.newRectangleShape(objects.right_wall.body, 0, 0, 10, 600, 0) --anchor the shape to the body, and make it a width of 10 and a height of 600
+  objects.right_wall.shape:setData("wall");
   objects.right_wall.shape:setCategory(2);
 
   objects.left_wall = {}
   objects.left_wall.body  = love.physics.newBody(world, 5, 300, 0, 0) --remember, the body anchors from the center of the shape
   objects.left_wall.shape = love.physics.newRectangleShape(objects.left_wall.body, 0, 0, 10, 600, 0) --anchor the shape to the body, and make it a width of 10 and a height of 600
+  objects.left_wall.shape:setData("wall");
   objects.left_wall.shape:setCategory(2);
 
   objects.plat1 = {}
   objects.plat1.body  = love.physics.newBody(world, 250, 500, 0, 0) --remember, the body anchors from the center of the shape
   objects.plat1.shape = love.physics.newRectangleShape(objects.plat1.body, 0, 0, 180, 30, 0) --anchor the shape to the body, and make it a width of 180 and a height of 30
   objects.plat1.shape:setRestitution(0);
-  objects.plat1.shape:setData("static");
   objects.plat1.shape:setCategory(2);
 
   objects.plat2 = {}
   objects.plat2.body  = love.physics.newBody(world, 365, 350, 0, 0) --remember, the body anchors from the center of the shape
   objects.plat2.shape = love.physics.newRectangleShape(objects.plat2.body, 0, 0, 300, 30, 0) --anchor the shape to the body, and make it a width of 300 and a height of 30
   objects.plat2.shape:setRestitution(0);
-  objects.plat2.shape:setData("static");
   objects.plat2.shape:setCategory(2);
 
   objects.plat3 = {}
   objects.plat3.body  = love.physics.newBody(world, 55, 425, 0, 0) --remember, the body anchors from the center of the shape
   objects.plat3.shape = love.physics.newRectangleShape(objects.plat3.body, 0, 0, 90, 30, 0) --anchor the shape to the body, and make it a width of 90 and a height of 30
   objects.plat3.shape:setRestitution(0);
-  objects.plat3.shape:setData("static");
   objects.plat3.shape:setCategory(2);
 
   objects.pad = {}
@@ -97,37 +79,12 @@ function love.load()
   objects.pad.shape:setData("pad");
   objects.pad.shape:setCategory(2);
  
-  --let's create the player
-  objects.player = {}
-  objects.player.body = love.physics.newBody(world, 100, 500, 1, 0) --place the body in the center of the world, with a mass of 1
-  objects.player.shape = love.physics.newCircleShape(objects.player.body, 0, 0, 20) --the player's shape has no offset from it's body and has a radius of 20
-  objects.player.body:setAngularDamping(20.0);
-  objects.player.body:setMassFromShapes();
-  objects.player.shape:setRestitution(0);
-  objects.player.shape:setFriction(1.0);
-  objects.player.shape:setData("player");
-  objects.player.shape:setCategory(1);
-  objects.player.shape:setMask(1);
-
-  --let's create the spear
-  objects.spear = {}
-  objects.spear.body = love.physics.newBody(world, 100, 500, 1, 0)
-  objects.spear.shape = love.physics.newRectangleShape(objects.spear.body, 0, 0, 67, 8, 0)
-  objects.spear.body:setAngularDamping(7.5);
-  objects.spear.body:setMassFromShapes();
-  objects.spear.shape:setRestitution(0);
-  objects.spear.shape:setData("spear");
-  objects.spear.shape:setCategory(1);
-  objects.spear.shape:setMask(1);
-
-
   --let's create a box
   objects.box = {}
   objects.box.body  = love.physics.newBody(world, 300, 200, 1, 0)
   objects.box.shape = love.physics.newRectangleShape(objects.box.body, 0, 0, 32, 32, 0)
   objects.box.body:setMassFromShapes();
   objects.box.shape:setRestitution(0);
-  objects.box.shape:setData("static");
   objects.box.shape:setCategory(2);
 
 
@@ -135,6 +92,8 @@ function love.load()
   love.graphics.setCaption("Masai");
   love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
   love.graphics.setMode(650, 650, false, true, 0) --set the window dimensions to 650 by 650
+
+  love.audio.play(sounds.music);
 end
 
 function add(a, b, coll)
@@ -144,84 +103,27 @@ function add(a, b, coll)
 end
 
 function persist(a, b, coll)
-    if (b == "player") and (a == "static") then
-       canJump = true;
-       canRun  = true;
+    if (b == "player") and not (a == "wall") then
+       player.canJump = true;
+       player.canRun  = true;
     end
 end
 
 function rem(a, b, coll)
-    if (b == "player") and (a == "static") then
-       canJump = false;
-       canRun  = false;
+    if (b == "player") and not (a == "wall") then
+       player.canJump = false;
+       player.canRun  = false;
     end
 end
 
 function love.update(dt)
+
+  mouse:update();
+
   if not (gamestate.paused) then
      world:update(dt) --this puts the world into motion
-  end
-
-  if throw then
-     throwtime = throwtime + dt;
-  end
-  if throwtime > 1.0 then
-     throwtime = 0;
-     throw = false;
-  end
-
-  if jab then
-     jabtime = jabtime + dt;
-  end
-  if jabtime > 0.075 then
-     jabtime = 0;
-     jab = false;
-  end
-
-  xvel, yvel = objects.player.body:getLinearVelocity()
-
-  xvel_spear, yvel_spear = objects.spear.body:getLinearVelocity()
-
-  mouse_x, mouse_y = love.mouse.getPosition();
-  x_distance  =  mouse_x - objects.spear.body:getX();
-  y_distance  =  mouse_y - objects.spear.body:getY();
-  mouse_angle = (math.atan2(y_distance, x_distance));
-
-  angle_torso = angle_torso%math.pi + dt;
-  ypos_torso  = math.sin(4*angle_torso);
-
-  if (mouse_x > objects.player.body:getX()) then
-     facing = 1;
-  elseif (mouse_x < objects.player.body:getX()) then
-     facing = -1;
-  end
-
-  if jab or throw then
-      if xvel_spear > spear_speed then
-         objects.spear.body:setLinearVelocity(spear_speed, yvel_spear);
-      elseif xvel_spear < -spear_speed then
-         objects.spear.body:setLinearVelocity(-spear_speed, yvel_spear);
-      end
-      if yvel_spear > spear_speed then
-         objects.spear.body:setLinearVelocity(xvel_spear, spear_speed);
-      elseif yvel_spear < -spear_speed then
-         objects.spear.body:setLinearVelocity(xvel_spear, -spear_speed);
-      end
-  end
-   
-
-  -- limit x velocity
-  if xvel > 800 then
-     objects.player.body:setLinearVelocity(800, yvel);
-  elseif xvel < -800 then
-     objects.player.body:setLinearVelocity(-800, yvel);
-  end
-
-  -- limit y velocity
-  if yvel > 800 then
-     objects.player.body:setLinearVelocity(xvel, 800);
-  elseif yvel < -800 then
-     objects.player.body:setLinearVelocity(xvel, -800);
+     player:update(dt);
+     spear:update(dt);
   end
 
   if love.keyboard.isDown( "escape" ) then
@@ -229,7 +131,7 @@ function love.update(dt)
   end
   if love.keyboard.isDown( "f12" ) then
      if not (gamestate.fullscreen) then
-         love.graphics.setMode(1440, 900, true, true, 0) --set the window dimensions to 650 by 650
+         love.graphics.setMode(1440, 900, true, true, 0) --set the window dimensions to 1440 by 900
          gamestate.fullscreen = true;
      else
          love.graphics.setMode(650, 650, false, true, 0) --set the window dimensions to 650 by 650
@@ -237,62 +139,37 @@ function love.update(dt)
      end
   end
 
-  if not (gamestate.paused) then
+ if not (gamestate.paused) then
   --here we are going to create some keyboard events
   if love.keyboard.isDown("d") then --press the d key to push the player to the right
-       if xvel < 220 and canRun then
-          objects.player.body:applyForce(8, 0)
-       elseif xvel < 220 then
-          objects.player.body:applyForce(3, 0)
-       end
-    angle_feet = angle_feet%math.pi + dt;
-    -- <TechnoCat> A*sin(B*x)+C A=amplitude, 1/B = frequency, C=y-offset
-    xpos_foot1, ypos_foot1 = math.cos(12*angle_feet)*10, math.sin(12*angle_feet)*4;
-    xpos_foot2, ypos_foot2 = math.cos(12*angle_feet+10)*10, math.sin(12*angle_feet+10)*4;
-
-    running = 1;
+    player:moveRight();
+    player.moving  = true;
+    player.running = 1;
   elseif love.keyboard.isDown("a") then --press the a key to push the player to the left
-       if xvel > -220 and canRun then
-          objects.player.body:applyForce(-8, 0)
-       elseif xvel > -220 then
-          objects.player.body:applyForce(-3, 0)
-       end
-    angle_feet = angle_feet%math.pi + dt;
-    xpos_foot1, ypos_foot1 = math.cos(12*angle_feet)*10, math.sin(12*angle_feet)*4;
-    xpos_foot2, ypos_foot2 = math.cos(12*angle_feet+10)*10, math.sin(12*angle_feet+10)*4;
-
-    running = -1;
+    player:moveLeft();
+    player.moving  = true;
+    player.running = -1;
   else
-    xpos_foot1, ypos_foot1 =  5, -4;
-    xpos_foot2, ypos_foot2 = -5, -4;
+    player.moving  = false;
   end
-  end -- end not (gamestate.paused)
+   
+ end -- end not (gamestate.paused)
 end
 
 function love.keypressed(key, unicode)
-  if key == " " and canJump and not gamestate.paused then
-       objects.player.body:applyImpulse(0, -2.3, 10, 10)
+  if key == " " and player.canJump and not gamestate.paused then
+        player:jump();
   elseif key == "p" then
        gamestate.paused = not gamestate.paused;
   end    
 end
 
 function love.mousepressed(x, y, button)
---    x_spear_tip = (objects.spear.body:getX() + math.cos(mouse_angle)*33);
---    y_spear_tip = (objects.spear.body:getY() + math.cos(mouse_angle)*33);
-    objects.spear.body:setAngularVelocity(0);
-    x_spear_tip = (objects.spear.body:getX() + 33.5*math.cos(mouse_angle));
-    y_spear_tip = (objects.spear.body:getY() + 33.5*math.sin(mouse_angle));
-	-- Checks which button was pressed.
-	if button == "l" and not jab and not throw and not gamestate.paused then
-       jab = true; spear_speed = 500;
-       objects.spear.body:applyImpulse( (x - objects.spear.body:getX())/100, (y - objects.spear.body:getY())/100, x_spear_tip, y_spear_tip );
-       love.audio.play(sounds.jab);
+	if button == "l" and not spear.jab and not spear.throw and not gamestate.paused then
+        spear:jab_attack();
     end
-	if button == "r" and not throw and not jab and not gamestate.paused then
-       throw = true; spear_speed = 500;
-       objects.spear.body:applyImpulse( (x - objects.spear.body:getX())/50,  (y - objects.spear.body:getY())/50,  x_spear_tip, y_spear_tip );
-       love.audio.play(sounds.throw);
+	if button == "r" and not spear.throw and not spear.jab and not gamestate.paused then
+        spear:throw_attack();
     end
 end
 
@@ -316,25 +193,19 @@ function love.draw()
 
     love.graphics.draw(textures.crate, objects.box.body:getX(), objects.box.body:getY(), objects.box.body:getAngle(), 1, 1, 16, 16);
 
-    love.graphics.draw(textures.masai_torso, objects.player.body:getX(), (objects.player.body:getY() - 20), 0, facing, 1,  10, ypos_torso);
-    love.graphics.draw(textures.masai_head,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,   0, ypos_torso);
-    love.graphics.draw(textures.masai_hand,  objects.player.body:getX(), (objects.player.body:getY() - 12), 0, facing, 1, -10, 0);
-    love.graphics.draw(textures.masai_hand,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,  15, 0);
+    love.graphics.draw(textures.masai_torso, player.xpos, (player.ypos - 20), 0, player.facing, 1,  10, player.torso_ypos);
+    love.graphics.draw(textures.masai_head,  player.xpos, (player.ypos - 25), 0, player.facing, 1,   0, player.torso_ypos);
+    love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 12), 0, player.facing, 1, -10, 0);
+    love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 25), 0, player.facing, 1,  15, 0);
 
-    love.graphics.draw(textures.masai_foot,  objects.player.body:getX(), (objects.player.body:getY()), 0, running, 1,  3 + xpos_foot1, -8 + ypos_foot1);
-    love.graphics.draw(textures.masai_foot,  objects.player.body:getX(), (objects.player.body:getY()), 0, running, 1,  3 + xpos_foot2, -8 + ypos_foot2);
+    love.graphics.draw(textures.masai_foot,  player.xpos, player.ypos, 0, player.running, 1,  3 + player.foot1_xpos, -8 + player.foot1_ypos);
+    love.graphics.draw(textures.masai_foot,  player.xpos, player.ypos, 0, player.running, 1,  3 + player.foot2_xpos, -8 + player.foot2_ypos);
 
-   if not throw and not jab then
-       objects.spear.body:setAngle(mouse_angle);
-       objects.spear.body:setX(objects.player.body:getX() - (11 * facing));
-       objects.spear.body:setY(objects.player.body:getY() - 23);
-   end
-
-  love.graphics.draw(textures.spear, objects.spear.body:getX(), (objects.spear.body:getY()), objects.spear.body:getAngle(),  1, 1,  35, 5);
+  love.graphics.draw(textures.spear, spear.xpos, spear.ypos, spear.angle,  1, 1,  35, 5);
 
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the text
 
-  love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
+  --love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
 
   if (gamestate.paused) then
      love.graphics.setFont(24);
@@ -342,5 +213,5 @@ function love.draw()
      love.graphics.setFont(12);
   end
 
-  love.graphics.draw(textures.cursor, love.mouse.getX(), love.mouse.getY())
+  love.graphics.draw(textures.cursor, mouse.xpos, mouse.ypos)
 end

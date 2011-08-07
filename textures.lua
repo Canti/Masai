@@ -7,7 +7,7 @@
 
 -- textures.lua
 
-textures = class:new()  -- sounds master class
+textures = class:new()  -- textures master class
 
 
 function textures:load()
