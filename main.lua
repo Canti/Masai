@@ -14,7 +14,7 @@ require 'mouse'     -- mouse distance / angle functions
 require 'sounds'    -- load all our audio here
 require 'textures'  -- load all our textures here
 
-require 'level'     -- the world which holds all classes below
+require 'box2d'     -- the world which holds all classes below
 require 'player'    -- the player  class and associated functions
 require 'spear'     -- the spear   class and associated functions
 
@@ -27,29 +27,11 @@ function love.load()
   sounds:load();
   textures:load();
 
-  level:init(650, 650, 500);
-  player:init(100, 500); ---------------------------------------------
-  spear:init();
-require 'objects'   -- the objects class and associated functions
- 
-  ground = platform:new(650/2, 625, 650, 50);
-
-  wall_left  = wall:new(5,   300, 10, 600);
-  wall_right = wall:new(645, 300, 10, 600);
-
-  plat1 = platform:new(250, 500, 180, 32);
-  plat2 = platform:new(365, 350, 300, 32);
-  plat3 = platform:new(55,  425,  90, 32);
-
-  pad1  = pad:new(550, 595, 50, 10);
-
-  box1  = box:new(300, 200, 32, 32);
-  box2  = box:new(300, 160, 32, 32);
-  box3  = box:new(300, 120, 32, 32);
+  -- need to create a system for loading different levels
+  require 'levels/level1'
 
   --initial graphics setup
   love.graphics.setCaption("Masai");
-  love.graphics.setBackgroundColor(104, 136, 248) --set the background color to a nice blue
   love.graphics.setMode(650, 650, false, true, 0) --set the window dimensions to 650 by 650
 
   love.audio.play(sounds.music1);
@@ -80,7 +62,7 @@ function love.update(dt)
   mouse:update();
 
   if not (gamestate.paused) then
-     level.world:update(dt) --this puts the world into motion
+     box2d.world:update(dt) --this puts the world into motion
      player:update(dt);
      spear:update(dt);
   end
@@ -120,6 +102,8 @@ function love.keypressed(key, unicode)
         player:jump();
   elseif key == "p" then
        gamestate.paused = not gamestate.paused;
+  elseif key == "]" then
+       gamestate.showFPS = not gamestate.showFPS;
   end    
 end
 
@@ -133,34 +117,17 @@ function love.mousepressed(x, y, button)
 end
 
 function love.draw()
-  love.graphics.setColor(72, 160, 14) -- set the drawing color to green for the ground
-  love.graphics.polygon("fill", ground.shape:getPoints()) -- draw a "filled in" polygon using the ground's coordinates
 
-  love.graphics.setColor(172, 72, 72) -- set the drawing color to red for the walls
-  love.graphics.polygon("fill", wall_left.shape:getPoints()) -- draw a "filled in" polygon using the wall's coordinates
-  love.graphics.polygon("fill", wall_right.shape:getPoints()) -- draw a "filled in" polygon using the wall's coordinates
-
-  love.graphics.setColor(150, 150, 150) -- set the drawing color to grey for the platforms
-
-  love.graphics.polygon("fill", plat1.shape:getPoints());
-  love.graphics.polygon("fill", plat2.shape:getPoints());
-  love.graphics.polygon("fill", plat3.shape:getPoints());
-
-  love.graphics.setColor(72, 60, 220) -- set the drawing color to blue for the pad
-  love.graphics.polygon("fill", pad1.shape:getPoints())
-
-  love.graphics.setColor(250, 250, 250) --set the drawing color to white for the images
-
-  love.graphics.draw(textures.crate, box1.body:getX(), box1.body:getY(), box1.body:getAngle(), 1, 1, 16, 16);
-  love.graphics.draw(textures.crate, box2.body:getX(), box2.body:getY(), box2.body:getAngle(), 1, 1, 16, 16);
-  love.graphics.draw(textures.crate, box3.body:getX(), box3.body:getY(), box3.body:getAngle(), 1, 1, 16, 16);
+  level1:draw();
 
   player:draw();
   spear:draw();
 
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the text
 
-  --love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
+  if (gamestate.showFPS) then
+     love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
+  end
 
   if (gamestate.paused) then
      love.graphics.setFont(24);

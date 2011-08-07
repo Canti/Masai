@@ -14,7 +14,7 @@ object = class:new()
 
 function object:create(x, y, w, h)
          table.insert(objects, self)
-         self.body  = love.physics.newBody(level.world, x, y, 0, 0)
+         self.body  = love.physics.newBody(box2d.world, x, y, 0, 0)
          self.shape = love.physics.newRectangleShape(self.body, 0, 0, w, h, 0)
 end
 

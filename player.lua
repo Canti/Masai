@@ -38,7 +38,7 @@ function player:init(x, y) -- x, y is the starting position of the player
       self.foot1_ypos = 0; self.foot2_ypos = 0;
 
       -- the player is a box2d physics object
-      self.body     = love.physics.newBody(level.world, self.xpos, self.ypos, 1, 0);
+      self.body     = love.physics.newBody(box2d.world, self.xpos, self.ypos, 1, 0);
       self.shape    = love.physics.newCircleShape(self.body, 0, 0, 20) --the player's shape has no offset from it's body and has a radius of 20
 
       self.body:setAngularDamping(20.0); -- so that the circle doesn't spin much and make our player roll / slide around
