@@ -1,12 +1,17 @@
 -- Masai is a 2D platform game based on Masai folklore.
 -- It uses the LÖVE 2D game engine. http://love2d.org
 
--- Cantide aka Kanchi aka Karl Wortmann
+-- by Cantide aka Kanchi aka Karl Wortmann ( karlwortmann@gmail.com )
 
-require 'secs'    -- an OO implementation by bartbes. http://love2d.org/wiki/SECS
 
-local paused = false;
-local fullscreen = false;
+
+-- main.lua
+
+require 'secs'      -- a LUA OO implementation by bartbes. http://love2d.org/wiki/SECS
+require 'sounds'    -- load all our audio here
+require 'textures'  -- load all our textures here
+require 'gamestate' -- variables for things like paused / menu etc.
+
 
 local canJump = false;
 local canRun  = false;
@@ -30,30 +35,13 @@ ypos_foot1 = 0; ypos_foot2 = 0;
 ypos_torso = 0;
 
 function love.load()
-  music = love.audio.newSource("music/greenochrome.xm");
-  music:setLooping(true);
-  music:setVolume(0.4);
 
-  love.audio.play(music)
-
-  bounce_sound_1 = love.audio.newSource("sounds/drum_1.ogg", "static");
-  bounce_sound_1:setVolume(1.0);
-  bounce_sound_1:setPitch(0.75);
-  throw_sound_1 = love.audio.newSource("sounds/woosh_1.ogg", "static");
-  throw_sound_1:setVolume(1.0);
-  throw_sound_2 = love.audio.newSource("sounds/woosh_2.ogg", "static");
-  throw_sound_2:setVolume(1.0);
+  gamestate:init();
+  sounds:load();
+  textures:load();
+  love.audio.play(sounds.music);
 
   love.mouse.setVisible(false)
-  cursor      = love.graphics.newImage("textures/cursor.png");
-
-  spear       = love.graphics.newImage("textures/spear.png");
-  masai_head  = love.graphics.newImage("textures/masai_head.png");
-  masai_hand  = love.graphics.newImage("textures/masai_hand.png");
-  masai_torso = love.graphics.newImage("textures/masai_torso.png");
-  masai_foot  = love.graphics.newImage("textures/masai_foot.png");
-
-  crate       = love.graphics.newImage("textures/crate.png");
 
   world = love.physics.newWorld(-650, -650, 650, 650) --create a world for the bodies to exist in with width and height of 650
   world:setGravity(0, 500) --the x component of the gravity will be 0, and the y component of the gravity will be 500
@@ -150,8 +138,8 @@ function love.load()
 end
 
 function add(a, b, coll)
-    if (a == "pad") and bounce_sound_1:isStopped() then
-       love.audio.play(bounce_sound_1)
+    if (a == "pad") and sounds.bounce:isStopped() then
+       love.audio.play(sounds.bounce)
     end
 end
 
@@ -170,7 +158,7 @@ function rem(a, b, coll)
 end
 
 function love.update(dt)
-  if not (paused) then
+  if not (gamestate.paused) then
      world:update(dt) --this puts the world into motion
   end
 
@@ -240,16 +228,16 @@ function love.update(dt)
       love.event.push('q');
   end
   if love.keyboard.isDown( "f12" ) then
-     if not (fullscreen) then
+     if not (gamestate.fullscreen) then
          love.graphics.setMode(1440, 900, true, true, 0) --set the window dimensions to 650 by 650
-         fullscreen = true;
+         gamestate.fullscreen = true;
      else
          love.graphics.setMode(650, 650, false, true, 0) --set the window dimensions to 650 by 650
-         fullscreen = false;
+         gamestate.fullscreen = false;
      end
   end
 
-  if not (paused) then
+  if not (gamestate.paused) then
   --here we are going to create some keyboard events
   if love.keyboard.isDown("d") then --press the d key to push the player to the right
        if xvel < 220 and canRun then
@@ -278,14 +266,14 @@ function love.update(dt)
     xpos_foot1, ypos_foot1 =  5, -4;
     xpos_foot2, ypos_foot2 = -5, -4;
   end
-  end -- end not (paused)
+  end -- end not (gamestate.paused)
 end
 
 function love.keypressed(key, unicode)
-  if key == " " and canJump and not paused then
+  if key == " " and canJump and not gamestate.paused then
        objects.player.body:applyImpulse(0, -2.3, 10, 10)
   elseif key == "p" then
-       paused = not paused;
+       gamestate.paused = not gamestate.paused;
   end    
 end
 
@@ -296,15 +284,15 @@ function love.mousepressed(x, y, button)
     x_spear_tip = (objects.spear.body:getX() + 33.5*math.cos(mouse_angle));
     y_spear_tip = (objects.spear.body:getY() + 33.5*math.sin(mouse_angle));
 	-- Checks which button was pressed.
-	if button == "l" and not jab and not throw and not paused then
+	if button == "l" and not jab and not throw and not gamestate.paused then
        jab = true; spear_speed = 500;
        objects.spear.body:applyImpulse( (x - objects.spear.body:getX())/100, (y - objects.spear.body:getY())/100, x_spear_tip, y_spear_tip );
-       love.audio.play(throw_sound_2);
+       love.audio.play(sounds.jab);
     end
-	if button == "r" and not throw and not jab and not paused then
+	if button == "r" and not throw and not jab and not gamestate.paused then
        throw = true; spear_speed = 500;
        objects.spear.body:applyImpulse( (x - objects.spear.body:getX())/50,  (y - objects.spear.body:getY())/50,  x_spear_tip, y_spear_tip );
-       love.audio.play(throw_sound_1);
+       love.audio.play(sounds.throw);
     end
 end
 
@@ -326,15 +314,15 @@ function love.draw()
 
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the images
 
-    love.graphics.draw(crate, objects.box.body:getX(), objects.box.body:getY(), objects.box.body:getAngle(), 1, 1, 16, 16);
+    love.graphics.draw(textures.crate, objects.box.body:getX(), objects.box.body:getY(), objects.box.body:getAngle(), 1, 1, 16, 16);
 
-    love.graphics.draw(masai_torso, objects.player.body:getX(), (objects.player.body:getY() - 20), 0, facing, 1,  10, ypos_torso);
-    love.graphics.draw(masai_head,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,   0, ypos_torso);
-    love.graphics.draw(masai_hand,  objects.player.body:getX(), (objects.player.body:getY() - 12), 0, facing, 1, -10, 0);
-    love.graphics.draw(masai_hand,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,  15, 0);
+    love.graphics.draw(textures.masai_torso, objects.player.body:getX(), (objects.player.body:getY() - 20), 0, facing, 1,  10, ypos_torso);
+    love.graphics.draw(textures.masai_head,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,   0, ypos_torso);
+    love.graphics.draw(textures.masai_hand,  objects.player.body:getX(), (objects.player.body:getY() - 12), 0, facing, 1, -10, 0);
+    love.graphics.draw(textures.masai_hand,  objects.player.body:getX(), (objects.player.body:getY() - 25), 0, facing, 1,  15, 0);
 
-    love.graphics.draw(masai_foot,  objects.player.body:getX(), (objects.player.body:getY()), 0, running, 1,  3 + xpos_foot1, -8 + ypos_foot1);
-    love.graphics.draw(masai_foot,  objects.player.body:getX(), (objects.player.body:getY()), 0, running, 1,  3 + xpos_foot2, -8 + ypos_foot2);
+    love.graphics.draw(textures.masai_foot,  objects.player.body:getX(), (objects.player.body:getY()), 0, running, 1,  3 + xpos_foot1, -8 + ypos_foot1);
+    love.graphics.draw(textures.masai_foot,  objects.player.body:getX(), (objects.player.body:getY()), 0, running, 1,  3 + xpos_foot2, -8 + ypos_foot2);
 
    if not throw and not jab then
        objects.spear.body:setAngle(mouse_angle);
@@ -342,17 +330,17 @@ function love.draw()
        objects.spear.body:setY(objects.player.body:getY() - 23);
    end
 
-  love.graphics.draw(spear, objects.spear.body:getX(), (objects.spear.body:getY()), objects.spear.body:getAngle(),  1, 1,  35, 5);
+  love.graphics.draw(textures.spear, objects.spear.body:getX(), (objects.spear.body:getY()), objects.spear.body:getAngle(),  1, 1,  35, 5);
 
   love.graphics.setColor(250, 250, 250) --set the drawing color to white for the text
 
   love.graphics.print("FPS: " .. love.timer.getFPS(), 580, 15)
 
-  if (paused) then
+  if (gamestate.paused) then
      love.graphics.setFont(24);
      love.graphics.print("PAUSED", 300, 310)
      love.graphics.setFont(12);
   end
 
-  love.graphics.draw(cursor, love.mouse.getX(), love.mouse.getY())
+  love.graphics.draw(textures.cursor, love.mouse.getX(), love.mouse.getY())
 end
