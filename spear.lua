@@ -30,7 +30,7 @@ function spear:init()
         self.angle    = 0;
 
         --let's create the spear - it's also a box2d physics object
-        self.body   = love.physics.newBody(world, player.xpos, player.ypos, 1, 0);
+        self.body   = love.physics.newBody(level.world, player.xpos, player.ypos, 1, 0);
         self.shape  = love.physics.newRectangleShape(self.body, 0, 0, 67, 8, 0);
         self.body:setAngularDamping(7.5); -- we don't want it to spin like crazy... yet..
         self.body:setMassFromShapes();    -- realistic mass
@@ -109,4 +109,10 @@ function spear:throw_attack()
     self.throw = true; self.maxvel = 500;
     self.body:applyImpulse( (mouse.xdist/50), (mouse.ydist/50), self.tip_xpos, self.tip_ypos );
     love.audio.play(sounds.throw);
+end
+
+function spear:draw()
+
+    love.graphics.draw(textures.spear, spear.xpos, spear.ypos, spear.angle,  1, 1,  35, 5);
+
 end

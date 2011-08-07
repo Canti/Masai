@@ -38,7 +38,7 @@ function player:init(x, y) -- x, y is the starting position of the player
       self.foot1_ypos = 0; self.foot2_ypos = 0;
 
       -- the player is a box2d physics object
-      self.body     = love.physics.newBody(world, self.xpos, self.ypos, 1, 0);
+      self.body     = love.physics.newBody(level.world, self.xpos, self.ypos, 1, 0);
       self.shape    = love.physics.newCircleShape(self.body, 0, 0, 20) --the player's shape has no offset from it's body and has a radius of 20
 
       self.body:setAngularDamping(20.0); -- so that the circle doesn't spin much and make our player roll / slide around
@@ -116,4 +116,15 @@ end
 function player:jump()
 
       self.body:applyImpulse(0, self.jumpPower, 10, 10)
+end
+
+function player:draw()
+
+    love.graphics.draw(textures.masai_torso, player.xpos, (player.ypos - 20), 0, player.facing, 1,  10, player.torso_ypos);
+    love.graphics.draw(textures.masai_head,  player.xpos, (player.ypos - 25), 0, player.facing, 1,   0, player.torso_ypos);
+    love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 12), 0, player.facing, 1, -10, 0);
+    love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 25), 0, player.facing, 1,  15, 0);
+    love.graphics.draw(textures.masai_foot,  player.xpos, player.ypos, 0, player.running, 1,  3 + player.foot1_xpos, -8 + player.foot1_ypos);
+    love.graphics.draw(textures.masai_foot,  player.xpos, player.ypos, 0, player.running, 1,  3 + player.foot2_xpos, -8 + player.foot2_ypos);
+
 end

@@ -14,9 +14,9 @@ function sounds:load()
 
     -- create a music table in future, when i have more tracks
 
-    self.music = love.audio.newSource("music/greenochrome.xm");
-    self.music:setLooping(true);
-    self.music:setVolume(0.4);
+    self.music1 = love.audio.newSource("music/greenochrome.xm");
+    self.music1:setLooping(true);
+    self.music1:setVolume(0.4);
 
     -- a sound for the jump pads
     self.bounce = love.audio.newSource("sounds/drum_1.ogg", "static");
