@@ -149,9 +149,6 @@ function love.draw()
 
   camera:unset()
 
-  love.graphics.print("X: " .. mouse.xpos, width - 80, 30)
-  love.graphics.print("Y: " .. mouse.ypos, width - 80, 45)
-
   if (gamestate.showFPS) then
      love.graphics.print("FPS: " .. love.timer.getFPS(), width - 80, 15)
   end

@@ -121,9 +121,12 @@ end
 function player:draw()
 
     love.graphics.draw(textures.masai_torso, player.xpos, (player.ypos - 20), 0, player.facing, 1,  10, player.torso_ypos);
-    love.graphics.draw(textures.masai_head,  player.xpos, (player.ypos - 25), 0, player.facing, 1,   0, player.torso_ypos);
+    love.graphics.draw(textures.masai_head,  player.xpos, (player.ypos - 29), 0, player.facing, 1,   0, player.torso_ypos);
     love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 12), 0, player.facing, 1, -10, 0);
-    love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 25), 0, player.facing, 1,  15, 0);
+    if not (spear.jab) then
+           love.graphics.draw(textures.masai_hand,  player.xpos, (player.ypos - 25), 0, player.facing, 1,  15, 0);
+    else   love.graphics.draw(textures.masai_hand,  spear.xpos, spear.ypos, 0, player.facing, 1,  0, 0);
+    end
     love.graphics.draw(textures.masai_foot,  player.xpos, player.ypos, 0, player.running, 1,  3 + player.foot1_xpos, -8 + player.foot1_ypos);
     love.graphics.draw(textures.masai_foot,  player.xpos, player.ypos, 0, player.running, 1,  3 + player.foot2_xpos, -8 + player.foot2_ypos);
 

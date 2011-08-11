@@ -32,7 +32,7 @@ function spear:init()
         --let's create the spear - it's also a box2d physics object
         self.body   = love.physics.newBody(box2d.world, player.xpos, player.ypos, 1, 0);
         self.shape  = love.physics.newRectangleShape(self.body, 0, 0, 67, 8, 0);
-        self.body:setAngularDamping(7.5); -- we don't want it to spin like crazy... yet..
+        self.body:setAngularDamping(3.5); -- we don't want it to spin like crazy... yet..
         self.body:setMassFromShapes();    -- realistic mass
         self.shape:setRestitution(0);     -- not bouncy
         self.shape:setData("spear");      -- callback info
@@ -45,6 +45,7 @@ function spear:update(dt)
 
     self.xvel, self.yvel = self.body:getLinearVelocity();
 
+--[[ -- the "limiting speed" code doesn't work well. it ruines the direction
     -- limit speed only when thrown or jabbed
     if self.jab or self.throw then
         if self.xvel > self.maxvel then
@@ -58,7 +59,7 @@ function spear:update(dt)
            self.body:setLinearVelocity(self.xvel, -self.maxvel);
         end
     end
-
+]]
     -- if spear is thrown, count down time and then not thrown
     if self.throw then
        self.throw_dt = self.throw_dt + dt;
@@ -92,14 +93,58 @@ end
 function spear:jab_attack()
 
     self.body:setAngularVelocity(0);
+    self.jab = true;
+--    self.maxvel = 50;
+
+  	playervx, playervy = player.body:getLinearVelocity( );
+		
+	vx = mouse.xdist * 5;
+	vy = mouse.ydist * 5 - 100;
+	xabs=math.abs(vx);
+	yabs=math.abs(vy);
+	vz = math.sqrt(vx * vx + vy * vy);
+	
+	-- also add player velocity
+	self.body:setLinearVelocity( vx * vz / (xabs+yabs) + playervx, vy * vz / (xabs+yabs) + playervy);	
+    love.audio.play(sounds.jab);
+end
+
+--[[
+function spear:jab_attack()
+
+    self.body:setAngularVelocity(0);
     self.tip_xpos = (self.xpos + 33.5*math.cos(mouse.angle));
     self.tip_ypos = (self.ypos + 33.5*math.sin(mouse.angle));
 
     self.jab = true; self.maxvel = 50;
+
     self.body:applyImpulse( (mouse.xdist/100), (mouse.ydist/100), self.tip_xpos, self.tip_ypos );
     love.audio.play(sounds.jab);
 end
+]]
 
+function spear:throw_attack()
+
+    self.body:setAngularVelocity(0);
+    self.throw = true; 
+--	self.maxvel = 500;
+    
+	playervx, playervy = player.body:getLinearVelocity( );
+		
+	vx = mouse.xdist * 5;
+	vy = mouse.ydist * 5 - 100;
+	xabs=math.abs(vx);
+	yabs=math.abs(vy);
+	vz = math.sqrt(vx * vx + vy * vy);
+	
+	-- also add player velocity
+	self.body:setLinearVelocity( vx * vz / (xabs+yabs) + playervx, vy * vz / (xabs+yabs) + playervy);	
+	
+    love.audio.play(sounds.throw);
+end
+
+
+--[[
 function spear:throw_attack()
 
     self.body:setAngularVelocity(0);
@@ -110,7 +155,7 @@ function spear:throw_attack()
     self.body:applyImpulse( (mouse.xdist/50), (mouse.ydist/50), self.tip_xpos, self.tip_ypos );
     love.audio.play(sounds.throw);
 end
-
+]]
 function spear:draw()
 
     love.graphics.draw(textures.spear, spear.xpos, spear.ypos, spear.angle,  1, 1,  35, 5);
