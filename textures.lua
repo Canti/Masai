@@ -22,6 +22,7 @@ function textures:load()
       self.masai_foot  = love.graphics.newImage("textures/masai_foot.png");
 
       self.crate       = love.graphics.newImage("textures/crate.png");
+      self.metal_crate = love.graphics.newImage("textures/metal_box.png");
 
 
 end
