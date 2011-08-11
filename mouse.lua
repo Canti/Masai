@@ -18,7 +18,7 @@ end
 
 function mouse:update()
 
-      self.xpos, self.ypos = love.mouse.getPosition();
+      self.xpos, self.ypos = camera:mousePosition(); -- love.mouse.getPosition();
       self.xdist = self.xpos - spear.xpos;
       self.ydist = self.ypos - spear.ypos;
 
