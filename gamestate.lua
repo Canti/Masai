@@ -13,6 +13,7 @@ gamestate = class:new()  -- sounds master class
 function gamestate:init()
 
       self.paused      = false;
+      self.showFPS     = false;
       self.fullscreen  = false;
 
 end
