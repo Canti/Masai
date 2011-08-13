@@ -23,6 +23,14 @@ function textures:load()
 
       self.crate       = love.graphics.newImage("textures/crate.png");
       self.metal_crate = love.graphics.newImage("textures/metal_box.png");
+      self.wood_block  = love.graphics.newImage("textures/woodblock.png");
+	  self.wood_block:setWrap("repeat", "repeat")
 
-
+      self.sun         = love.graphics.newImage("textures/sun.png");
+	  self.bg          = love.graphics.newImage("textures/bg.png");
+      self.cloud1      = love.graphics.newImage("textures/cloud1.png");
+      self.cloud2      = love.graphics.newImage("textures/cloud2.png");
+      self.cloud3      = love.graphics.newImage("textures/cloud3.png");
+	  self.underground = love.graphics.newImage("textures/underground.png");
+	  self.underground:setWrap("repeat", "repeat")
 end

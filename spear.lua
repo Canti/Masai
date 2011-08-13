@@ -14,7 +14,7 @@ function spear:init()
 
         self.xvel     = 0;
         self.yvel     = 0;
-        self.maxvel   = 500;
+        self.maxvel   = 800;
 
         self.xpos     = 0;
         self.ypos     = 0;
@@ -31,13 +31,14 @@ function spear:init()
 
         --let's create the spear - it's also a box2d physics object
         self.body   = love.physics.newBody(box2d.world, player.xpos, player.ypos, 1, 0);
-        self.shape  = love.physics.newRectangleShape(self.body, 0, 0, 67, 8, 0);
-        self.body:setAngularDamping(3.5); -- we don't want it to spin like crazy... yet..
-        self.body:setMassFromShapes();    -- realistic mass
-        self.shape:setRestitution(0);     -- not bouncy
-        self.shape:setData("spear");      -- callback info
-        self.shape:setCategory(1);        -- collision category
-        self.shape:setMask(1);            -- don't collide with self or player
+        -- self.shape  = love.physics.newRectangleShape(self.body, 0, 0, 67, 8, 0);
+		self.shape  = love.physics.newPolygonShape(self.body, -33,0 , 30,5  , 33,0 , 30,-5 );
+        self.body:setAngularDamping(0.07); -- we don't want it to spin like crazy... yet..
+        self.body:setMassFromShapes();     -- realistic mass
+        self.shape:setRestitution(0);      -- not bouncy
+        self.shape:setData("spear");       -- callback info
+        self.shape:setCategory(1);         -- collision category
+        self.shape:setMask(1);             -- don't collide with self or player
 
 end
 
@@ -45,21 +46,6 @@ function spear:update(dt)
 
     self.xvel, self.yvel = self.body:getLinearVelocity();
 
---[[ -- the "limiting speed" code doesn't work well. it ruines the direction
-    -- limit speed only when thrown or jabbed
-    if self.jab or self.throw then
-        if self.xvel > self.maxvel then
-           self.body:setLinearVelocity(self.maxvel, self.yvel);
-        elseif self.xvel < -self.maxvel then
-           self.body:setLinearVelocity(-self.maxvel, self.yvel);
-        end
-        if self.yvel > self.maxvel then
-           self.body:setLinearVelocity(self.xvel, self.maxvel);
-        elseif self.yvel < -self.maxvel then
-           self.body:setLinearVelocity(self.xvel, -self.maxvel);
-        end
-    end
-]]
     -- if spear is thrown, count down time and then not thrown
     if self.throw then
        self.throw_dt = self.throw_dt + dt;
@@ -73,7 +59,7 @@ function spear:update(dt)
     if self.jab then
        self.jab_dt = self.jab_dt + dt;
     end
-    if self.jab_dt > 0.075 then
+    if self.jab_dt > 0.15 then
        self.jab_dt = 0;
        self.jab = false;
     end
@@ -83,7 +69,7 @@ function spear:update(dt)
         self.body:setX(player.xpos - (11 * player.facing));
         self.body:setY(player.ypos - 23);
     end
-
+	
     self.angle = self.body:getAngle();
     self.xpos = self.body:getX();
     self.ypos = self.body:getY();
@@ -94,48 +80,38 @@ function spear:jab_attack()
 
     self.body:setAngularVelocity(0);
     self.jab = true;
---    self.maxvel = 50;
+    self.maxvel = 500;
 
   	playervx, playervy = player.body:getLinearVelocity( );
 		
 	vx = mouse.xdist * 5;
-	vy = mouse.ydist * 5 - 100;
+	vy = mouse.ydist * 5 - self.maxvel/10;
 	xabs=math.abs(vx);
 	yabs=math.abs(vy);
 	vz = math.sqrt(vx * vx + vy * vy);
+	if(vz > self.maxvel) then vz = self.maxvel end
 	
 	-- also add player velocity
 	self.body:setLinearVelocity( vx * vz / (xabs+yabs) + playervx, vy * vz / (xabs+yabs) + playervy);	
     love.audio.play(sounds.jab);
 end
 
---[[
-function spear:jab_attack()
-
-    self.body:setAngularVelocity(0);
-    self.tip_xpos = (self.xpos + 33.5*math.cos(mouse.angle));
-    self.tip_ypos = (self.ypos + 33.5*math.sin(mouse.angle));
-
-    self.jab = true; self.maxvel = 50;
-
-    self.body:applyImpulse( (mouse.xdist/100), (mouse.ydist/100), self.tip_xpos, self.tip_ypos );
-    love.audio.play(sounds.jab);
-end
-]]
-
 function spear:throw_attack()
 
     self.body:setAngularVelocity(0);
     self.throw = true; 
---	self.maxvel = 500;
+	self.maxvel = 2000;
     
 	playervx, playervy = player.body:getLinearVelocity( );
 		
 	vx = mouse.xdist * 5;
-	vy = mouse.ydist * 5 - 100;
+	vy = mouse.ydist * 5 - self.maxvel/10;
 	xabs=math.abs(vx);
 	yabs=math.abs(vy);
 	vz = math.sqrt(vx * vx + vy * vy);
+	if(vz > self.maxvel) then vz = self.maxvel end
+	
+	self.body:setAngularVelocity( vx*0.8 / vz )
 	
 	-- also add player velocity
 	self.body:setLinearVelocity( vx * vz / (xabs+yabs) + playervx, vy * vz / (xabs+yabs) + playervy);	
