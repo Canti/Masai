@@ -10,7 +10,7 @@
 require 'secs'      -- a LUA OO implementation by bartbes. http://love2d.org/wiki/SECS
 
 require 'gamestate' -- variables for things like paused / menu etc.
-require 'camera'    -- 
+require 'camera'    --
 require 'mouse'     -- mouse distance / angle functions
 require 'sounds'    -- load all our audio here
 require 'textures'  -- load all our textures here
@@ -33,7 +33,7 @@ function love.load()
 
   --initial graphics setup
   love.graphics.setCaption("Masai");
-  love.graphics.setMode(800, 600, false, true, 0) --set the window dimensions to 650 by 650
+  love.graphics.setMode(800, 600, false, true, 0) --set the window dimensions to 800 by 600
 
   width  = love.graphics.getWidth()
   height = love.graphics.getHeight()
@@ -90,7 +90,7 @@ function love.update(dt)
          height = love.graphics.getHeight()
          camera:setBounds(0, 0, width, height)
      else
-         love.graphics.setMode(800, 600, false, true, 0) --set the window dimensions to 650 by 650
+         love.graphics.setMode(800, 600, false, true, 0) --set the window dimensions to 800 by 600
          gamestate.fullscreen = false;
          width = love.graphics.getWidth()
          height = love.graphics.getHeight()
@@ -111,7 +111,7 @@ function love.update(dt)
   else
     player.moving  = false;
   end
-   
+
  end -- end not (gamestate.paused)
 end
 
@@ -122,7 +122,7 @@ function love.keypressed(key, unicode)
        gamestate.paused = not gamestate.paused;
   elseif key == "]" then
        gamestate.showFPS = not gamestate.showFPS;
-  end    
+  end
 end
 
 function love.mousepressed(x, y, button)
